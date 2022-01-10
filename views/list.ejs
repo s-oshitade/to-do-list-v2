@@ -6,7 +6,7 @@
    <% for(let listItem of newListItems ){ %>
      <div class="item">
        <input type="checkbox">
-        <p><%= listItem %></p>
+        <p><%= listItem.name %></p>
      </div>
    <% } %>
    <form class="item" action="/" method="POST">

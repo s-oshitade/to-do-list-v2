@@ -35,12 +35,16 @@ const item3 = new Item({
 
 const defaultItems = [item1, item2, item3]
 
+const listSchema = {
+  name: String,
+  items: [itemsSchema]
+}
 
-
+const List = mongoose.model("List", listSchema);
 
 app.get('/', (req, res) => {
 
-  Item.find({}, function(err, foundItems){
+  Item.find({}, function (err, foundItems) {
     if (foundItems.length === 0) {
       Item.insertMany(defaultItems, function (err) {
         if (err) {
@@ -51,7 +55,10 @@ app.get('/', (req, res) => {
       });
       res.redirect("/");
     } else {
-      res.render("list", {listTitle: "Today",newListItems: foundItems});
+      res.render("list", {
+        listTitle: "Today",
+        newListItems: foundItems
+      });
     }
   })
 });
@@ -69,7 +76,7 @@ app.post('/', (req, res) => {
 
 app.post("/delete", (req, res) => {
   checkedItemId = (req.body.checkbox);
-  Item.findByIdAndRemove(checkedItemId, function(err){
+  Item.findByIdAndRemove(checkedItemId, function (err) {
     if (!err) {
       console.log("Successfully deleted checked item");
       res.redirect("/");
@@ -77,12 +84,29 @@ app.post("/delete", (req, res) => {
   })
 })
 
-app.get("/work", (req, res) => {
-  res.render("list", {
-    listTitle: "Work List",
-    newListItems: workItems
-  });
-});
+app.get("/:customListName", (req, res)=>{
+  customListName = req.params.customListName;
+
+  List.findOne({name: customListName}, function(err, foundList){
+    if (!err){
+      if (!foundList){
+        //Create a new list
+        const list = new List ({
+          name: customListName,
+          items: defaultItems
+        })
+        list.save()
+        res.redirect("/" + customListName)
+      } else {
+       //Show an existing list
+
+       res.render("list", {listTitle: foundList.name, newListItems: foundList.items})
+      }
+    }
+  })
+
+
+})
 
 app.get("/about", (req, res) => {
   res.render("about");
